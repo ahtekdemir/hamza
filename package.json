@@ -1,0 +1,16 @@
+{
+  "name": "cowboydtf-reel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Code-driven cinematic motion reel for cowboydtf.com (1080x1920, 20s)",
+  "type": "module",
+  "scripts": {
+    "still": "node scripts/render.mjs --still",
+    "preview": "node scripts/render.mjs --scale 0.5 --samples 2",
+    "render": "node scripts/render.mjs",
+    "audio": "python3 scripts/audio.py"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  }
+}
