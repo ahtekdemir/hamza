@@ -8,7 +8,7 @@
 //   node scripts/render.mjs --from 180 --to 300     re-render a frame range only
 //   node scripts/render.mjs --encode-only           re-encode existing frames
 //
-// Options: --scale <f> --samples <n> --from <frame> --to <frame> --workers <n>
+// Options: --reel <main|uv> --scale <f> --samples <n> --from <frame> --to <frame> --workers <n>
 //          --frames <dir> --out <file> --crf <n> --audio <wav> --no-encode
 
 import http from 'node:http';
@@ -33,10 +33,11 @@ const opt = (name, def) => { const i = args.indexOf('--' + name); return i >= 0 
 const flag = (name) => args.includes('--' + name);
 
 const scale = parseFloat(opt('scale', '1'));
+const reel = opt('reel', 'main'); // main | uv
 const samples = parseInt(opt('samples', '0'), 10); // 0 = per-scene default
 const workers = parseInt(opt('workers', '2'), 10);
-const framesDir = path.resolve(opt('frames', path.join(ROOT, '.frames')));
-const outFile = path.resolve(opt('out', path.join(ROOT, 'output', 'cowboydtf-reel.mp4')));
+const framesDir = path.resolve(opt('frames', path.join(ROOT, reel === 'main' ? '.frames' : `.frames-${reel}`)));
+const outFile = path.resolve(opt('out', path.join(ROOT, 'output', reel === 'main' ? 'cowboydtf-reel.mp4' : 'cowboydtf-dtf-vs-uv.mp4')));
 const crf = opt('crf', '14');
 const audio = opt('audio', null);
 const still = opt('still', null);
@@ -65,7 +66,7 @@ async function openPage(chromium, port) {
   const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   page.on('pageerror', (e) => console.error('[page error]', e.message));
   page.on('console', (m) => { const t = m.text(); if (m.type() === 'error' || t.startsWith('[reel]')) console.log('[page]', t); });
-  await page.goto(`http://127.0.0.1:${port}/src/index.html?scale=${scale}`);
+  await page.goto(`http://127.0.0.1:${port}/src/index.html?scale=${scale}&reel=${reel}`);
   await page.waitForFunction('window.__reel && window.__reel.isReady === true', null, { timeout: 180000 });
   return { browser, page };
 }

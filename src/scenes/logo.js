@@ -8,7 +8,7 @@ import { text, label, rule, FONT } from '../lib/overlay.js';
 
 const NAVY = '#203869', OX = '#762c2b';
 const DRAW0 = 0.15, DRAW1 = 1.42, FLASH = 1.5;
-const HAT_W = 600, HAT_Y = 690; // px, design space
+const HAT_W = 600; // px, design space
 
 /** Geodesic "burn" order through the hat's line art, so it draws like a fuse. */
 function timeField(img, w, h) {
@@ -58,7 +58,9 @@ function timeField(img, w, h) {
   return t;
 }
 
-export function createLogo(ctx) {
+export function createLogo(ctx, opts = {}) {
+  const HAT_Y = opts.hatY ?? 690, WORD_Y = opts.wordY ?? 890;
+  const COL = { navy: NAVY, ox: OX };
   const { hat, wordmark } = ctx.assets.images;
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-540, 540, 960, -960, -10, 10);
@@ -139,12 +141,21 @@ export function createLogo(ctx) {
     c.save();
     c.globalAlpha = sat(e * 1.4);
     if (e < 0.98) c.filter = `blur(${((1 - e) * 10).toFixed(2)}px)`;
-    c.drawImage(wordmark, 540 - W / 2, 890 + (1 - e) * 36, W, H);
+    c.drawImage(wordmark, 540 - W / 2, WORD_Y + (1 - e) * 36, W, H);
     c.restore();
-    // address
-    rule(c, 540, 1206, 460, u - 0.5, { star: true, color: OX, alpha: 0.9, width: 2.5 });
-    label(c, 'COWBOYDTF.COM', 540, 1290, { family: FONT.label, weight: 800, size: 56, tracking: 10, fill: NAVY, shadow: false }, u - 0.6, -1, { dur: 0.6 });
-    label(c, 'ARLINGTON, TX   ·   NATIONWIDE SHIPPING', 540, 1362, { family: FONT.label, weight: 700, size: 25, tracking: 6, fill: OX, shadow: false }, u - 0.8, -1, { dur: 0.6 });
+    if (opts.lines) {
+      // ad layout: tagline + address, kept above the ad interface
+      const ty = WORD_Y + H + 86;
+      label(c, opts.tagline, 540, ty, { family: FONT.serif, style: 'italic', weight: 700, size: 46, tracking: 1, fill: NAVY, shadow: false }, u - 0.45, -1, { dur: 0.6 });
+      rule(c, 540, ty + 42, 460, u - 0.55, { star: true, color: OX, alpha: 0.9, width: 2.5 });
+      opts.lines.forEach(([s, y, size, weight, tracking, col], i) => {
+        label(c, s, 540, y, { family: FONT.label, weight, size, tracking, fill: COL[col], shadow: false }, u - 0.65 - i * 0.18, -1, { dur: 0.6 });
+      });
+    } else {
+      rule(c, 540, 1206, 460, u - 0.5, { star: true, color: OX, alpha: 0.9, width: 2.5 });
+      label(c, 'COWBOYDTF.COM', 540, 1290, { family: FONT.label, weight: 800, size: 56, tracking: 10, fill: NAVY, shadow: false }, u - 0.6, -1, { dur: 0.6 });
+      label(c, 'ARLINGTON, TX   ·   NATIONWIDE SHIPPING', 540, 1362, { family: FONT.label, weight: 700, size: 25, tracking: 6, fill: OX, shadow: false }, u - 0.8, -1, { dur: 0.6 });
+    }
     c.restore();
   }
 

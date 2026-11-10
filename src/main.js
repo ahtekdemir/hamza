@@ -8,10 +8,12 @@ import { Overlay } from './lib/overlay.js';
 import { loadAssets, debugSheet } from './lib/assets.js';
 import { makeStudioEnv } from './lib/stage.js';
 import { halton } from './lib/util.js';
-import { buildTimeline, FPS, DURATION } from './timeline.js';
+import { buildTimeline, reelDuration, FPS } from './timeline.js';
 
 const params = new URLSearchParams(location.search);
 const scale = parseFloat(params.get('scale') || '1');
+const REEL = params.get('reel') || 'main';
+const DURATION = reelDuration(REEL);
 const W = Math.round(1080 * scale), H = Math.round(1920 * scale);
 const SHUTTER = 0.5; // 180 degree shutter
 
@@ -78,7 +80,7 @@ window.__reel = {
   assets = await loadAssets();
   const env = makeStudioEnv(renderer);
   const ctx = { THREE, renderer, assets, env, W: 1080, H: 1920, aspect: 1080 / 1920, pixelH: H };
-  timeline = buildTimeline(ctx);
+  timeline = buildTimeline(ctx, REEL);
   // warm up: compile every scene's shaders once
   for (const s of timeline) { s.update(0.01, s.start + 0.01); renderer.compile(s.scene, s.camera); }
   window.__reel.isReady = true;

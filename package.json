@@ -8,7 +8,9 @@
     "still": "node scripts/render.mjs --still",
     "preview": "node scripts/render.mjs --scale 0.5 --samples 2",
     "render": "node scripts/render.mjs",
-    "audio": "python3 scripts/audio.py"
+    "audio": "python3 scripts/audio.py",
+    "render:uv": "node scripts/render.mjs --reel uv",
+    "audio:uv": "python3 scripts/audio_uv.py"
   },
   "dependencies": {
     "three": "0.170.0"
