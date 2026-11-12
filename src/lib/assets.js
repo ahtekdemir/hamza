@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { buildDesigns, LAYOUT, SHEET } from './designs.js';
 
 const FONTS = [
-  '400 100px "Sancreek"', '400 100px "Rye"', '400 100px "Anton"',
+  '400 100px "Sancreek"', '400 100px "Rye"', '400 100px "Anton"', '400 100px "Pacifico"',
   '500 100px "Montserrat"', '600 100px "Montserrat"', '700 100px "Montserrat"', '800 100px "Montserrat"',
   'italic 500 100px "Playfair Display"', 'italic 700 100px "Playfair Display"',
 ];

@@ -4,3 +4,4 @@ node_modules/
 *.log
 .frames-uv/
 __pycache__/
+.frames-thanks/

@@ -6,3 +6,4 @@ taken from the Fontsource packages of the Google Fonts originals:
 - Anton (Vernon Adams) – artwork on the sample transfers
 - Montserrat (Julieta Ulanovsky et al.) – labels
 - Playfair Display Italic (Claus Eggers Sørensen) – accent lines
+- Pacifico (Vernon Adams et al.) – script lettering on the Thanksgiving transfers and end card

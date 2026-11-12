@@ -8,7 +8,7 @@
 //   node scripts/render.mjs --from 180 --to 300     re-render a frame range only
 //   node scripts/render.mjs --encode-only           re-encode existing frames
 //
-// Options: --reel <main|uv> --scale <f> --samples <n> --from <frame> --to <frame> --workers <n>
+// Options: --reel <main|uv|thanks> --scale <f> --samples <n> --from <frame> --to <frame> --workers <n>
 //          --frames <dir> --out <file> --crf <n> --audio <wav> --no-encode
 
 import http from 'node:http';
@@ -37,7 +37,8 @@ const reel = opt('reel', 'main'); // main | uv
 const samples = parseInt(opt('samples', '0'), 10); // 0 = per-scene default
 const workers = parseInt(opt('workers', '2'), 10);
 const framesDir = path.resolve(opt('frames', path.join(ROOT, reel === 'main' ? '.frames' : `.frames-${reel}`)));
-const outFile = path.resolve(opt('out', path.join(ROOT, 'output', reel === 'main' ? 'cowboydtf-reel.mp4' : 'cowboydtf-dtf-vs-uv.mp4')));
+const OUT_NAMES = { main: 'cowboydtf-reel.mp4', uv: 'cowboydtf-dtf-vs-uv.mp4', thanks: 'cowboydtf-thanksgiving.mp4' };
+const outFile = path.resolve(opt('out', path.join(ROOT, 'output', OUT_NAMES[reel] || `cowboydtf-${reel}.mp4`)));
 const crf = opt('crf', '14');
 const audio = opt('audio', null);
 const still = opt('still', null);
@@ -93,7 +94,7 @@ try {
     encode({ fps: 30 });
   } else if (opt('designs', null)) {
     const { browser, page } = await openPage(chromium, port);
-    const url = await page.evaluate(() => window.__reel.debugDesigns());
+    const url = await page.evaluate((w) => window.__reel.debugDesigns(w), opt('art', null));
     fs.writeFileSync(path.resolve(opt('designs')), Buffer.from(url.split(',')[1], 'base64'));
     await browser.close();
   } else if (still) {
