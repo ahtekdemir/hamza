@@ -1,6 +1,6 @@
 # Cowboy DTF — motion reels
 
-Two 1080×1920 (9:16) motion reels for [cowboydtf.com](https://cowboydtf.com),
+Three 1080×1920 (9:16) motion reels for [cowboydtf.com](https://cowboydtf.com),
 rendered entirely from code: Three.js scenes, frame-by-frame capture in headless
 Chromium, motion blur by sub-frame accumulation, then bloom, lens streaks,
 filmic tone mapping, vignette and grain.
@@ -15,6 +15,9 @@ filmic tone mapping, vignette and grain.
 | `output/cowboydtf-dtf-vs-uv.mp4` | "Fabric or hard surface?" — DTF vs UV DTF ad, 15 s, with sound |
 | `output/cowboydtf-dtf-vs-uv-silent.mp4` | Same picture, no audio |
 | `output/cowboydtf-dtf-vs-uv-sfx.wav` | Its sound track on its own |
+| `output/cowboydtf-thanksgiving.mp4` | "Thanksgiving designs, ready to press." — seasonal reel, 16 s, with music and sound |
+| `output/cowboydtf-thanksgiving-silent.mp4` | Same picture, no audio |
+| `output/cowboydtf-thanksgiving-sfx.wav` | Its sound track on its own |
 
 ## "Press. Peel. Done." — the cut (20 s, 120 BPM grid)
 
@@ -41,6 +44,26 @@ the bottom 670 px and 65 px at each side, where the ad interface sits.
 | 9–12 s | Both films peel together | `src/scenes/versus.js` |
 | 12–15 s | Logo, "Both at Cowboy DTF. No minimums." | `src/scenes/logo.js` |
 
+## "Thanksgiving designs, ready to press." — seasonal reel (16 s)
+
+A Thanksgiving follow-up to the store-opening Short, in the same language
+(bold condensed headlines, a sheet of transfers with a curling corner, the
+designs on shirts) on a warm autumn stage with falling leaves. Headlines stay
+between 270 px from the top and 1310 px, clear of the Reels interface.
+
+| Time | Shot | File |
+|---|---|---|
+| 0–4 s | Hook — "Thanksgiving designs, ready to press." Six designs pop onto a transfer sheet | `src/scenes/tg-sheet.js` |
+| 4–8 s | "Press. Peel. Give thanks." Film lands, the platen clamps (hot peel, 6–8 s), the film peels off | `src/scenes/tg-press.js` |
+| 8–11.5 s | "For family feasts. Friendsgiving. Turkey trots." Three finished garments | `src/scenes/tg-lineup.js` |
+| 11.5–16 s | "Happy Thanksgiving from all of us at Cowboy DTF", logo and web address | `src/scenes/tg-card.js` |
+
+The six Thanksgiving designs, the garments and the leaves are original sample
+art drawn in `src/lib/thanks-art.js`; the film, leaf and paper pieces shared by
+the four shots are in `src/lib/autumn.js`. The sound track
+(`scripts/audio_thanks.py`) is a synthesised plucked-string tune at 120 BPM with
+effects timed to the picture — no samples, no licensed music.
+
 All on-screen claims come from the live site. The artwork on the transfers is
 original sample art drawn in `src/lib/designs.js`; the logo files in
 `assets/brand/` are the site's own.
@@ -59,7 +82,10 @@ node scripts/render.mjs --encode-only --audio output/cowboydtf-reel-sfx.wav
 ```
 
 For the DTF vs UV DTF ad, add `--reel uv` to the render commands and use
-`npm run audio:uv`; its frames go to `.frames-uv/`.
+`npm run audio:uv`; its frames go to `.frames-uv/`. For the Thanksgiving reel
+use `--reel thanks` and `npm run audio:thanks`; its frames go to
+`.frames-thanks/`. `node scripts/render.mjs --designs sheet.png --art sheet`
+exports the Thanksgiving design sheet as a flat image.
 
 To change wording, edit the `drawOverlay` function of the scene; timings are in
 seconds from the start of that scene. A single scene can be re-rendered with

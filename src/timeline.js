@@ -7,6 +7,10 @@ import { createPeel } from './scenes/peel.js';
 import { createCards } from './scenes/cards.js';
 import { createLogo } from './scenes/logo.js';
 import { createVersus } from './scenes/versus.js';
+import { createTgSheet } from './scenes/tg-sheet.js';
+import { createTgPress } from './scenes/tg-press.js';
+import { createTgLineup } from './scenes/tg-lineup.js';
+import { createTgCard } from './scenes/tg-card.js';
 
 export const FPS = 30;
 
@@ -33,6 +37,16 @@ const REELS = {
         tagline: 'Both at Cowboy DTF. No minimums.',
         lines: [['COWBOYDTF.COM', 1142, 52, 800, 10, 'navy'], ['DTF  ·  UV DTF  ·  NO MINIMUMS', 1206, 24, 700, 6, 'ox']],
       })],
+    ],
+  },
+  // "Thanksgiving designs, ready to press." seasonal reel (Facebook / Instagram Reels)
+  thanks: {
+    duration: 16,
+    scenes: [
+      [0.0, 4.0, createTgSheet],
+      [4.0, 8.0, createTgPress],
+      [8.0, 11.5, createTgLineup],
+      [11.5, 16.0, createTgCard],
     ],
   },
 };
