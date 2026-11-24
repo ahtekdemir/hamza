@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { buildDesigns, LAYOUT, SHEET } from './designs.js';
 
 const FONTS = [
-  '400 100px "Sancreek"', '400 100px "Rye"', '400 100px "Anton"',
+  '400 100px "Sancreek"', '400 100px "Rye"', '400 100px "Anton"', '400 100px "Pacifico"',
   '500 100px "Montserrat"', '600 100px "Montserrat"', '700 100px "Montserrat"', '800 100px "Montserrat"',
   'italic 500 100px "Playfair Display"', 'italic 700 100px "Playfair Display"',
 ];
@@ -46,8 +46,9 @@ export async function loadAssets() {
     loadImage('/assets/brand/hat.png'), loadImage('/assets/brand/wordmark.png'), loadImage('/assets/brand/logo-full.png'),
   ]);
   const images = { hat, wordmark, logoFull };
+  const typeface = await fetch('/assets/fonts/anton-typeface.json').then((r) => r.json());
   const designs = buildDesigns(images);
-  return { images, designs, LAYOUT, SHEET };
+  return { images, designs, LAYOUT, SHEET, typeface };
 }
 
 /** Debug: the gang sheet as a flat image (used to review the artwork). */

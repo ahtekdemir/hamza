@@ -9,6 +9,7 @@ import { loadAssets, debugSheet } from './lib/assets.js';
 import { makeStudioEnv } from './lib/stage.js';
 import { halton } from './lib/util.js';
 import { buildTimeline, reelDuration, FPS } from './timeline.js';
+import { debugThanks } from './lib/thanks-art.js';
 
 const params = new URLSearchParams(location.search);
 const scale = parseFloat(params.get('scale') || '1');
@@ -73,7 +74,7 @@ window.__reel = {
   isReady: false,
   renderFrame(frame, samples = 0) { renderAt(frame / FPS, samples); return true; },
   renderTime(t, samples = 0) { renderAt(Math.round(t * FPS) / FPS, samples); return true; },
-  debugDesigns() { return debugSheet(assets); },
+  debugDesigns(which) { return which ? debugThanks(assets.images, which) : debugSheet(assets); },
 };
 
 (async () => {
