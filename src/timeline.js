@@ -11,6 +11,10 @@ import { createTgSheet } from './scenes/tg-sheet.js';
 import { createTgPress } from './scenes/tg-press.js';
 import { createTgLineup } from './scenes/tg-lineup.js';
 import { createTgCard } from './scenes/tg-card.js';
+import { createBfHook } from './scenes/bf-hook.js';
+import { createBfCode } from './scenes/bf-code.js';
+import { createBfCard } from './scenes/bf-card.js';
+import { buildOfferDesign, buildConfettiSprites } from './lib/bf-art.js';
 
 export const FPS = 30;
 
@@ -47,6 +51,20 @@ const REELS = {
       [4.0, 8.0, createTgPress],
       [8.0, 11.5, createTgLineup],
       [11.5, 16.0, createTgCard],
+    ],
+  },
+  // "Black Friday special — 30% off, code COWBOY30" (Facebook / Instagram Reels)
+  bf: {
+    duration: 15,
+    scenes: [
+      [0.0, 3.5, createBfHook],
+      [3.5, 7.5, (ctx) => createTgPress(ctx, {
+        art: buildOfferDesign(), shirt: '#1c1b1f', shirtTint: 0xffffff, bg: 0x3a0d08, halo: [0.6, 0.16, 0.05],
+        lines: ['PRESS.', 'PEEL.', 'SAVE 30%.'], fall: { sprites: buildConfettiSprites(), count: 34, size: [0.16, 0.36], fall: 0.9 },
+        dust: 0xffcf8a, outFlash: [1.0, 0.85, 0.6], outFlashAmt: 0.5, filmBack: 0.2,
+      })],
+      [7.5, 11.0, createBfCode],
+      [11.0, 15.0, createBfCard],
     ],
   },
 };

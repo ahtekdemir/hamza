@@ -8,7 +8,7 @@
 //   node scripts/render.mjs --from 180 --to 300     re-render a frame range only
 //   node scripts/render.mjs --encode-only           re-encode existing frames
 //
-// Options: --reel <main|uv|thanks> --scale <f> --samples <n> --from <frame> --to <frame> --workers <n>
+// Options: --reel <main|uv|thanks|bf> --scale <f> --samples <n> --from <frame> --to <frame> --workers <n>
 //          --frames <dir> --out <file> --crf <n> --audio <wav> --no-encode
 
 import http from 'node:http';
@@ -37,7 +37,7 @@ const reel = opt('reel', 'main'); // main | uv
 const samples = parseInt(opt('samples', '0'), 10); // 0 = per-scene default
 const workers = parseInt(opt('workers', '2'), 10);
 const framesDir = path.resolve(opt('frames', path.join(ROOT, reel === 'main' ? '.frames' : `.frames-${reel}`)));
-const OUT_NAMES = { main: 'cowboydtf-reel.mp4', uv: 'cowboydtf-dtf-vs-uv.mp4', thanks: 'cowboydtf-thanksgiving.mp4' };
+const OUT_NAMES = { main: 'cowboydtf-reel.mp4', uv: 'cowboydtf-dtf-vs-uv.mp4', thanks: 'cowboydtf-thanksgiving.mp4', bf: 'cowboydtf-black-friday.mp4' };
 const outFile = path.resolve(opt('out', path.join(ROOT, 'output', OUT_NAMES[reel] || `cowboydtf-${reel}.mp4`)));
 const crf = opt('crf', '14');
 const audio = opt('audio', null);

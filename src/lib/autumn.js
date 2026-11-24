@@ -161,9 +161,9 @@ export function makeFilm({ w, h, seg = [64, 80], art, rects = null, base = [0.01
  * `focus` (camera distance) use pre-blurred sprites, which reads as depth of field.
  * area = [width, height] at z = 0; `zr` = [near, far] offsets toward the camera.
  */
-export function makeLeaves({ count = 26, seed = 1, area = [7, 11], zr = [-3, 7], size = [0.32, 0.6], fall = 0.55, tintDark = 1, opacity = 1, keepOut = null, nearKeepOut = null, keepOutTop = null, avoid = null }) {
+export function makeLeaves({ count = 26, seed = 1, area = [7, 11], zr = [-3, 7], size = [0.32, 0.6], fall = 0.55, tintDark = 1, opacity = 1, keepOut = null, nearKeepOut = null, keepOutTop = null, avoid = null, sprites = null }) {
   const rnd = mulberry32(seed);
-  const sprites = buildLeafSprites(256);
+  sprites = sprites || buildLeafSprites(256);
   const levels = [0, 5, 13].map((b) => sprites.map((sp) => {
     if (!b) return bleedTexture(sp);
     const cv = document.createElement('canvas'); cv.width = cv.height = 256;

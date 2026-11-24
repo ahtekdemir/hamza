@@ -1,6 +1,6 @@
 # Cowboy DTF — motion reels
 
-Three 1080×1920 (9:16) motion reels for [cowboydtf.com](https://cowboydtf.com),
+Four 1080×1920 (9:16) motion reels for [cowboydtf.com](https://cowboydtf.com),
 rendered entirely from code: Three.js scenes, frame-by-frame capture in headless
 Chromium, motion blur by sub-frame accumulation, then bloom, lens streaks,
 filmic tone mapping, vignette and grain.
@@ -18,6 +18,9 @@ filmic tone mapping, vignette and grain.
 | `output/cowboydtf-thanksgiving.mp4` | "Thanksgiving designs, ready to press." — seasonal reel, 16 s, with music and sound |
 | `output/cowboydtf-thanksgiving-silent.mp4` | Same picture, no audio |
 | `output/cowboydtf-thanksgiving-sfx.wav` | Its sound track on its own |
+| `output/cowboydtf-black-friday.mp4` | Black Friday special — 30% off with code COWBOY30, 15 s, with music and sound |
+| `output/cowboydtf-black-friday-silent.mp4` | Same picture, no audio |
+| `output/cowboydtf-black-friday-sfx.wav` | Its sound track on its own |
 
 ## "Press. Peel. Done." — the cut (20 s, 120 BPM grid)
 
@@ -64,6 +67,23 @@ the four shots are in `src/lib/autumn.js`. The sound track
 (`scripts/audio_thanks.py`) is a synthesised plucked-string tune at 120 BPM with
 effects timed to the picture — no samples, no licensed music.
 
+## "Black Friday special" — 30% off, code COWBOY30 (15 s)
+
+| Time | Shot | File |
+|---|---|---|
+| 0–3.5 s | Hook — gold 3D "30% OFF" slams in under "BLACK FRIDAY", confetti | `src/scenes/bf-hook.js` |
+| 3.5–7.5 s | "Press. Peel. Save 30%." — the offer is heat-pressed onto a black tee | `src/scenes/tg-press.js` (with options) |
+| 7.5–11 s | "Use code" — a coupon ticket types out COWBOY30 and locks in | `src/scenes/bf-code.js` |
+| 11–15 s | Logo end card with the code, "30% off · cowboydtf.com", "Black Friday · Nov 27" | `src/scenes/bf-card.js` |
+
+The offer artwork, confetti and coupon are drawn in `src/lib/bf-art.js`. The 3D
+lettering uses Anton converted to a three.js typeface
+(`assets/fonts/anton-typeface.json`, made by `scripts/make-typeface.mjs`). The
+sound track (`scripts/audio_bf.py`) is synthesised: a 120 BPM beat in D minor
+with hits on the slam, the press, the typing and a register ring on the code.
+The discount (30% off, code COWBOY30, Black Friday Nov 27) is as given by the
+shop owner.
+
 All on-screen claims come from the live site. The artwork on the transfers is
 original sample art drawn in `src/lib/designs.js`; the logo files in
 `assets/brand/` are the site's own.
@@ -84,7 +104,8 @@ node scripts/render.mjs --encode-only --audio output/cowboydtf-reel-sfx.wav
 For the DTF vs UV DTF ad, add `--reel uv` to the render commands and use
 `npm run audio:uv`; its frames go to `.frames-uv/`. For the Thanksgiving reel
 use `--reel thanks` and `npm run audio:thanks`; its frames go to
-`.frames-thanks/`. `node scripts/render.mjs --designs sheet.png --art sheet`
+`.frames-thanks/`. For Black Friday use `--reel bf` and `npm run audio:bf`
+(frames in `.frames-bf/`). `node scripts/render.mjs --designs sheet.png --art sheet`
 exports the Thanksgiving design sheet as a flat image.
 
 To change wording, edit the `drawOverlay` function of the scene; timings are in

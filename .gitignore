@@ -5,3 +5,4 @@ node_modules/
 .frames-uv/
 __pycache__/
 .frames-thanks/
+.frames-bf/

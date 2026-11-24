@@ -12,7 +12,9 @@
     "render:uv": "node scripts/render.mjs --reel uv",
     "audio:uv": "python3 scripts/audio_uv.py",
     "render:thanks": "node scripts/render.mjs --reel thanks",
-    "audio:thanks": "python3 scripts/audio_thanks.py"
+    "audio:thanks": "python3 scripts/audio_thanks.py",
+    "render:bf": "node scripts/render.mjs --reel bf",
+    "audio:bf": "python3 scripts/audio_bf.py"
   },
   "dependencies": {
     "three": "0.170.0"

@@ -46,8 +46,9 @@ export async function loadAssets() {
     loadImage('/assets/brand/hat.png'), loadImage('/assets/brand/wordmark.png'), loadImage('/assets/brand/logo-full.png'),
   ]);
   const images = { hat, wordmark, logoFull };
+  const typeface = await fetch('/assets/fonts/anton-typeface.json').then((r) => r.json());
   const designs = buildDesigns(images);
-  return { images, designs, LAYOUT, SHEET };
+  return { images, designs, LAYOUT, SHEET, typeface };
 }
 
 /** Debug: the gang sheet as a flat image (used to review the artwork). */

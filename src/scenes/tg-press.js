@@ -18,12 +18,14 @@ const FILM_PX = 624;
 const CONTACT = 0.85, LIFT = 1.62, PEEL0 = 2.0, PEEL1 = 2.95, DONE = 3.0, OUT = 3.74;
 export const SHIRT_COLOR = '#e3d2b4';
 
-export function createTgPress(ctx) {
+export function createTgPress(ctx, opts = {}) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, ctx.aspect, 0.1, 200);
-  const backdrop = makeBackdrop({ inner: 0x4a2209, outer: 0x060302, center: [0.5, 0.36], radius: 0.95 });
+  const backdrop = makeBackdrop({ inner: opts.bg ?? 0x4a2209, outer: 0x060302, center: [0.5, 0.36], radius: 0.95 });
   scene.add(backdrop);
   const designs = ctx.assets.thanks || (ctx.assets.thanks = buildThanksDesigns());
+  const ART = opts.art || designs.badge, SHIRT = opts.shirt || SHIRT_COLOR, SHIRT_TINT = opts.shirtTint ?? 0xe2e2e2;
+  const LINES = opts.lines || ['PRESS.', 'PEEL.', 'GIVE THANKS.'];
   const glowTex = smoothGlow(256, 1.5);
 
   const rig = new THREE.Group(); scene.add(rig);
@@ -32,16 +34,16 @@ export function createTgPress(ctx) {
   rig.position.set(wx(PRINT_X), wy(shirtY), 0);
 
   // warm light pooling behind the shirt
-  const halo = new THREE.Mesh(new THREE.PlaneGeometry(G * 1.5, G * 1.5), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(0.55, 0.22, 0.05), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(G * 1.5, G * 1.5), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(...(opts.halo || [0.55, 0.22, 0.05])), transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending }));
   halo.position.set(0, 0.6, -0.5); halo.renderOrder = -2; rig.add(halo);
 
   // shirt: blank, and with the print (swapped in under the closed press)
-  const blank = buildGarment('tee', SHIRT_COLOR, null, 1536);
-  const printed = buildGarment('tee', SHIRT_COLOR, { art: designs.badge, x: PRINT_U[0], y: PRINT_U[1], w: PRINT_U[2] }, 1536);
+  const blank = buildGarment('tee', SHIRT, null, 1536);
+  const printed = buildGarment('tee', SHIRT, { art: ART, x: PRINT_U[0], y: PRINT_U[1], w: PRINT_U[2] }, 1536);
   const shirtGeo = new THREE.PlaneGeometry(G, G);
-  const shirtA = new THREE.Mesh(shirtGeo, new THREE.MeshBasicMaterial({ map: canvasTexture(blank.canvas), color: 0xe2e2e2, transparent: true, depthWrite: false }));
+  const shirtA = new THREE.Mesh(shirtGeo, new THREE.MeshBasicMaterial({ map: canvasTexture(blank.canvas), color: SHIRT_TINT, transparent: true, depthWrite: false }));
   shirtA.renderOrder = 1; rig.add(shirtA);
-  const shirtB = new THREE.Mesh(shirtGeo, new THREE.MeshBasicMaterial({ map: canvasTexture(printed.canvas), color: 0xe2e2e2, transparent: true, depthWrite: false, opacity: 0 }));
+  const shirtB = new THREE.Mesh(shirtGeo, new THREE.MeshBasicMaterial({ map: canvasTexture(printed.canvas), color: SHIRT_TINT, transparent: true, depthWrite: false, opacity: 0 }));
   shirtB.renderOrder = 2; shirtB.position.z = 0.002; rig.add(shirtB);
 
   // film carrying the design
@@ -50,9 +52,9 @@ export function createTgPress(ctx) {
   {
     const c = art.getContext('2d'); c.imageSmoothingQuality = 'high';
     const w = 832 * (PRINT_U[2] * SHIRT_PX) / FILM_PX;
-    c.drawImage(designs.badge, (832 - w) / 2, (832 - w) / 2, w, w);
+    c.drawImage(ART, (832 - w) / 2, (832 - w) / 2, w, w);
   }
-  const film = makeFilm({ w: FS, h: FS, seg: [72, 72], art: bleedTexture(art), base: [0.8, 0.86, 0.95], alpha: 0.1, back: [0.86, 0.9, 0.96], backAlpha: 0.46, rim: 0.9, gloss: 0.85 });
+  const film = makeFilm({ w: FS, h: FS, seg: [72, 72], art: bleedTexture(art), base: [0.8, 0.86, 0.95], alpha: 0.1, back: [0.86, 0.9, 0.96], backAlpha: opts.filmBack ?? 0.46, rim: 0.9, gloss: 0.85 });
   film.mesh.renderOrder = 5;
   const filmGrp = new THREE.Group(); rig.add(filmGrp); filmGrp.add(film.mesh);
   const printOff = new THREE.Vector3((PRINT_U[0] - 0.5) * G, (0.5 - PRINT_U[1]) * G, 0);
@@ -91,9 +93,9 @@ export function createTgPress(ctx) {
   const gleam = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 5.2), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(1.0, 0.92, 0.75), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
   gleam.renderOrder = 10; gleam.rotation.z = deg(-28); rig.add(gleam);
 
-  const leaves = makeLeaves({ count: 16, seed: 12, area: [5.4, 9.4], zr: [-3, 8.5], size: [0.42, 0.85], fall: 0.6, tintDark: 0.95, keepOut: 1.5, avoid: [wx(70), wx(980), wy(760), wy(270)] });
+  const leaves = makeLeaves({ count: 16, seed: 12, area: [5.4, 9.4], zr: [-3, 8.5], size: [0.42, 0.85], fall: 0.6, tintDark: 0.95, keepOut: 1.5, avoid: [wx(70), wx(980), wy(760), wy(270)], ...(opts.fall || {}) });
   scene.add(leaves.group);
-  const dust = makeDust({ count: 130, box: [9, 14, 12], seed: 14, size: 0.04, color: 0xffc98a, intensity: 0.8, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
+  const dust = makeDust({ count: 130, box: [9, 14, 12], seed: 14, size: 0.04, color: opts.dust ?? 0xffc98a, intensity: 0.8, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
   dust.position.z = 5; scene.add(dust);
   const hat = tint(ctx.assets.images.hat, CREAMY, 0.25);
   const maxOff = FS / 2 * (0.76 + 0.65) / Math.hypot(0.76, 0.65);
@@ -163,12 +165,12 @@ export function createTgPress(ctx) {
     const out = t - OUT;
     brandMark(c, hat, 1 - smooth(prog(t, OUT, OUT + 0.2)));
     const X = 96;
-    const s = fitSize(c, 'GIVE THANKS.', 640, 160), cap = capHeight(c, s), gap = 30;
+    const s = Math.min(...LINES.map((l) => fitSize(c, l, 640, 160))), cap = capHeight(c, s), gap = 30;
     const y1 = 292 + cap, y2 = y1 + gap + cap, y3 = y2 + gap + cap;
     const o = { ...HEAD, size: s, align: 'left', fill: CREAMY, shadow: { color: 'rgba(0,0,0,0.5)', blur: 30, y: 8 } };
-    riseLine(c, 'PRESS.', X, y1, o, t - (CONTACT - 0.06), out, { stagger: 0.03, dur: 0.4 });
-    riseLine(c, 'PEEL.', X, y2, o, t - (PEEL0 + 0.05), out - 0.03, { stagger: 0.03, dur: 0.4 });
-    riseLine(c, 'GIVE THANKS.', X, y3, { ...o, gradient: ['#ffe08a', GOLD, '#ef9a1c'], fill: undefined }, t - (DONE - 0.08), out - 0.06, { stagger: 0.024, dur: 0.45 });
+    riseLine(c, LINES[0], X, y1, o, t - (CONTACT - 0.06), out, { stagger: 0.03, dur: 0.4 });
+    riseLine(c, LINES[1], X, y2, o, t - (PEEL0 + 0.05), out - 0.03, { stagger: 0.03, dur: 0.4 });
+    riseLine(c, LINES[2], X, y3, { ...o, gradient: ['#ffe08a', GOLD, '#ef9a1c'], fill: undefined }, t - (DONE - 0.08), out - 0.06, { stagger: 0.024, dur: 0.45 });
 
     // hot-peel timer ring
     const p = t - (CONTACT + 0.05);
@@ -210,8 +212,8 @@ export function createTgPress(ctx) {
 
   function post(t) {
     return {
-      flash: Math.exp(-t * 9) * 0.55 + pulse(t, CONTACT + 0.03, 0.07) * 0.22 + pulse(t, DONE + 0.02, 0.09) * 0.16 + ease.inCubic(prog(t, 3.78, 4.0)) * 1.0,
-      flashColor: t > 3.5 ? [0.96, 0.9, 0.78] : [1.0, 0.8, 0.55],
+      flash: Math.exp(-t * 9) * 0.55 + pulse(t, CONTACT + 0.03, 0.07) * 0.22 + pulse(t, DONE + 0.02, 0.09) * 0.16 + ease.inCubic(prog(t, 3.78, 4.0)) * (opts.outFlashAmt ?? 1.0),
+      flashColor: t > 3.5 ? (opts.outFlash || [0.96, 0.9, 0.78]) : [1.0, 0.8, 0.55],
       zoomBlur: Math.exp(-t * 9) * 0.2 + ease.inCubic(prog(t, 3.75, 4.0)) * 0.12,
       bloom: 0.3, bloomThreshold: 0.98, streak: 0.16, vignette: 0.95, saturation: 1.1, tint: 0.2, ca: 0.4,
     };
