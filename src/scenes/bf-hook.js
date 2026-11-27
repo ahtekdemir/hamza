@@ -10,43 +10,44 @@ import { tint } from '../lib/assets.js';
 import { ease, prog, lerp, sat, smooth, deg, pulse } from '../lib/util.js';
 import { riseLine, text, rule, roundRect, FONT } from '../lib/overlay.js';
 import { wx, wy, brandMark } from './tg-sheet.js';
+import { GOLD } from '../lib/bf-themes.js';
 
 export const LAND = 0.5, OFF_LAND = 0.78;
 const OUT = 3.2;
 
-export function createBfHook(ctx) {
+export function createBfHook(ctx, T = GOLD) {
   const scene = new THREE.Scene();
   scene.environment = ctx.env; scene.environmentIntensity = 1.0;
   const camera = new THREE.PerspectiveCamera(30, ctx.aspect, 0.1, 200);
-  const backdrop = makeBackdrop({ inner: 0x3a0d08, outer: 0x030203, center: [0.5, 0.45], radius: 0.9 });
+  const backdrop = makeBackdrop({ inner: T.hookBg, outer: 0x030203, center: [0.5, 0.45], radius: 0.9 });
   scene.add(backdrop);
   const glowTex = smoothGlow(256, 1.5);
 
-  const mats = goldMaterials();
+  const mats = goldMaterials(T);
   const big = goldText(ctx.assets.typeface, '30%', 3.4, mats, { depth: 0.3 });
   const off = goldText(ctx.assets.typeface, 'OFF', 1.75, mats, { depth: 0.22 });
   const BIG_Y = wy(830), OFF_Y = wy(1118);
   const bigG = new THREE.Group(); bigG.add(big.mesh); scene.add(bigG);
   const offG = new THREE.Group(); offG.add(off.mesh); scene.add(offG);
 
-  const key = new THREE.DirectionalLight(0xffe2b0, 2.2); key.position.set(-3, 5, 8); scene.add(key);
-  const sweep = new THREE.PointLight(0xfff0d0, 0, 0, 2); scene.add(sweep);
-  const rim = new THREE.PointLight(0xff3b2a, 30, 0, 2); rim.position.set(3.5, -1, -1.5); scene.add(rim);
-  const fill = new THREE.DirectionalLight(0xffd9a0, 1.6); fill.position.set(2, -4, 7); scene.add(fill);
+  const key = new THREE.DirectionalLight(T.key[0], T.key[1]); key.position.set(-3, 5, 8); scene.add(key);
+  const sweep = new THREE.PointLight(T.sweep[0], 0, 0, 2); scene.add(sweep);
+  const rim = new THREE.PointLight(T.rim[0], T.rim[1], 0, 2); rim.position.set(3.5, -1, -1.5); scene.add(rim);
+  const fill = new THREE.DirectionalLight(T.fill[0], T.fill[1]); fill.position.set(2, -4, 7); scene.add(fill);
 
-  const halo = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(0.8, 0.22, 0.06), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(...T.halo), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
   halo.position.set(0, wy(1000), -2.5); halo.renderOrder = -10; scene.add(halo);
   // shockwave ring when "30%" lands
   const ringCv = document.createElement('canvas'); ringCv.width = ringCv.height = 512;
   { const c = ringCv.getContext('2d'); const g = c.createRadialGradient(256, 256, 180, 256, 256, 250); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.75, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, 512, 512); }
-  const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(ringCv), color: new THREE.Color(1.6, 1.0, 0.45), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const ring = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(ringCv), color: new THREE.Color(...T.ring), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
   ring.position.set(0, BIG_Y, -0.4); ring.renderOrder = -5; scene.add(ring);
 
-  const confetti = makeLeaves({ count: 46, seed: 7, area: [5.6, 9.6], zr: [-3, 8.5], size: [0.16, 0.36], fall: 0.95, sprites: buildConfettiSprites(), avoid: [wx(70), wx(1010), wy(470), wy(270)] });
+  const confetti = makeLeaves({ count: 46, seed: 7, area: [5.6, 9.6], zr: [-3, 8.5], size: [0.16, 0.36], fall: 0.95, sprites: buildConfettiSprites(T), avoid: [wx(70), wx(1010), wy(470), wy(270)] });
   scene.add(confetti.group);
-  const dust = makeDust({ count: 160, box: [9, 14, 12], seed: 3, size: 0.04, color: 0xffcf8a, intensity: 0.9, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
+  const dust = makeDust({ count: 160, box: [9, 14, 12], seed: 3, size: 0.04, color: T.dust, intensity: 0.9, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
   dust.position.z = 5; scene.add(dust);
-  const hat = tint(ctx.assets.images.hat, CREAMY, 0.25);
+  const hat = tint(ctx.assets.images.hat, T.headline, 0.25);
 
   function update(t) {
     backdrop.material.uniforms.time.value = t;
@@ -74,7 +75,7 @@ export function createBfHook(ctx) {
     // light sweep across the metal
     const sw = prog(t, 0.9, 2.6);
     sweep.position.set(lerp(-5, 5, ease.inOutSine(sw)), wy(1000) + 1.5, 4.5);
-    sweep.intensity = Math.sin(Math.PI * sw) * 9;
+    sweep.intensity = Math.sin(Math.PI * sw) * T.sweep[1];
     halo.material.opacity = smooth(prog(t, LAND - 0.1, LAND + 0.3)) * 0.32 * (1 - out);
     const r = prog(t, LAND, LAND + 0.6);
     ring.scale.setScalar(lerp(2, 11, ease.outCubic(r)));
@@ -87,23 +88,23 @@ export function createBfHook(ctx) {
 
   function drawOverlay(c, t) {
     const out = t - OUT;
-    brandMark(c, hat, smooth(prog(t, 0.0, 0.3)) * (1 - smooth(prog(t, OUT, OUT + 0.2))));
+    brandMark(c, hat, smooth(prog(t, 0.0, 0.3)) * (1 - smooth(prog(t, OUT, OUT + 0.2))), T.headline);
     const s = fitSize(c, 'BLACK FRIDAY', 888, 190), cap = capHeight(c, s);
     const y1 = 300 + cap;
-    riseLine(c, 'BLACK FRIDAY', 540, y1, { ...HEAD, size: s, fill: CREAMY, shadow: { color: 'rgba(0,0,0,0.6)', blur: 30, y: 8 } }, t - 0.05, out, { stagger: 0.03, dur: 0.45 });
+    riseLine(c, 'BLACK FRIDAY', 540, y1, { ...HEAD, size: s, fill: T.headline, shadow: { color: 'rgba(0,0,0,0.6)', blur: 30, y: 8 } }, t - 0.05, out, { stagger: 0.03, dur: 0.45 });
     // "SPECIAL" chip
     const p = t - 0.95;
     if (p > 0) {
       const e = ease.outExpo(sat(p / 0.5)), ex = out > 0.05 ? ease.inCubic(sat((out - 0.05) / 0.2)) : 0;
-      const lbl = 'SPECIAL  ·  CODE COWBOY30';
+      const lbl = T.chipLabel;
       c.save();
       c.font = `800 30px "${FONT.label}"`; c.letterSpacing = '6px';
       const tw = c.measureText(lbl).width - 6, cw = tw + 60, ch = 66, cy = y1 + 36;
       c.globalAlpha = 1 - ex;
       c.beginPath(); c.rect(540 - cw / 2 * e, cy, cw * e, ch); c.clip();
-      c.fillStyle = BF.red; roundRect(c, 540 - cw / 2, cy, cw, ch, 6); c.fill();
+      c.fillStyle = T.chip; roundRect(c, 540 - cw / 2, cy, cw, ch, 6); c.fill();
       c.restore();
-      text(c, lbl, 540, cy + 45, { family: FONT.label, weight: 800, size: 30, tracking: 6, fill: CREAMY, alpha: sat((p - 0.15) / 0.3) * (1 - ex), shadow: false });
+      text(c, lbl, 540, cy + 45, { family: FONT.label, weight: 800, size: 30, tracking: 6, fill: T.chipText, alpha: sat((p - 0.15) / 0.3) * (1 - ex), shadow: false });
     }
   }
 
@@ -111,7 +112,7 @@ export function createBfHook(ctx) {
     return {
       fade: smooth(prog(t, 0, 0.12)),
       flash: pulse(t, LAND + 0.02, 0.04) * 0.28 + pulse(t, OFF_LAND + 0.02, 0.04) * 0.12 + ease.inCubic(prog(t, 3.3, 3.5)) * 0.55,
-      flashColor: [1.0, 0.82, 0.5],
+      flashColor: T.flash,
       zoomBlur: pulse(t, LAND, 0.06) * 0.12 + ease.inCubic(prog(t, OUT, 3.5)) * 0.25,
       bloom: 0.45, bloomThreshold: 0.95, streak: 0.22, exposure: 1.05, vignette: 1.0, saturation: 1.12, tint: 0.15, ca: 0.5,
     };

@@ -14,7 +14,9 @@
     "render:thanks": "node scripts/render.mjs --reel thanks",
     "audio:thanks": "python3 scripts/audio_thanks.py",
     "render:bf": "node scripts/render.mjs --reel bf",
-    "audio:bf": "python3 scripts/audio_bf.py"
+    "audio:bf": "python3 scripts/audio_bf.py",
+    "render:bf2": "node scripts/render.mjs --reel bf2",
+    "audio:bf2": "python3 scripts/audio_bf.py output/cowboydtf-black-friday-first-order-sfx.wav --key 3"
   },
   "dependencies": {
     "three": "0.170.0"

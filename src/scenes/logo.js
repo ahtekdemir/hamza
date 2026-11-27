@@ -59,6 +59,10 @@ function timeField(img, w, h) {
 }
 
 export function createLogo(ctx, opts = {}) {
+  // optional palette; the defaults are the original cream / navy / warm-light look
+  const P = { paper: [0.925, 0.862, 0.76], darkA: [0.004, 0.006, 0.014], darkB: [0.02, 0.04, 0.10], glow: [1.0, 0.72, 0.4],
+    edge: [1.0, 0.9, 0.75], light: [1.0, 0.86, 0.62], flash: [1.0, 0.95, 0.86], ...(opts.palette || {}) };
+  const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
   const HAT_Y = opts.hatY ?? 690, WORD_Y = opts.wordY ?? 890;
   const COL = { navy: NAVY, ox: OX };
   const { hat, wordmark } = ctx.assets.images;
@@ -66,25 +70,26 @@ export function createLogo(ctx, opts = {}) {
   const camera = new THREE.OrthographicCamera(-540, 540, 960, -960, -10, 10);
 
   const bg = new THREE.Mesh(new THREE.PlaneGeometry(1080, 1920), new THREE.ShaderMaterial({
-    uniforms: { wipe: { value: 0 }, time: { value: 0 }, c: { value: new THREE.Vector2(0, 960 - HAT_Y) }, glow: { value: 0 } },
+    uniforms: { wipe: { value: 0 }, time: { value: 0 }, c: { value: new THREE.Vector2(0, 960 - HAT_Y) }, glow: { value: 0 },
+      paperCol: { value: v3(P.paper) }, darkA: { value: v3(P.darkA) }, darkB: { value: v3(P.darkB) }, glowCol: { value: v3(P.glow) }, edgeCol: { value: v3(P.edge) } },
     vertexShader: /* glsl */`varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: /* glsl */`
-      uniform float wipe, time, glow; uniform vec2 c; varying vec2 vP;
+      uniform float wipe, time, glow; uniform vec2 c; uniform vec3 paperCol, darkA, darkB, glowCol, edgeCol; varying vec2 vP;
       float hash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
       float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
         return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
       void main() {
         float r = length(vP - c);
-        vec3 dark = mix(vec3(0.004, 0.006, 0.014), vec3(0.02, 0.04, 0.10), exp(-r * r / 260000.0));
-        dark += vec3(1.0, 0.72, 0.4) * glow * exp(-r * r / 60000.0) * 0.12;
+        vec3 dark = mix(darkA, darkB, exp(-r * r / 260000.0));
+        dark += glowCol * glow * exp(-r * r / 60000.0) * 0.12;
         // cream paper (linear values of ~#f6efe2) with a faint fibre texture
         float fib = vnoise(vP * 0.9) * 0.6 + vnoise(vP * vec2(0.12, 2.4)) * 0.4;
-        vec3 paper = vec3(0.925, 0.862, 0.76) * (0.985 + 0.03 * fib);
+        vec3 paper = paperCol * (0.985 + 0.03 * fib);
         paper *= 1.0 - 0.10 * smoothstep(500.0, 1250.0, length((vP - vec2(0.0, 120.0)) * vec2(1.0, 0.72)));
         float edge = wipe * 1500.0;
         float m = smoothstep(edge, edge - 260.0, r) * step(0.001, wipe);
         vec3 col = mix(dark, paper, m);
-        col += vec3(1.0, 0.9, 0.75) * exp(-pow((r - edge) / 90.0, 2.0)) * step(0.001, wipe) * (1.0 - wipe) * 1.6;
+        col += edgeCol * exp(-pow((r - edge) / 90.0, 2.0)) * step(0.001, wipe) * (1.0 - wipe) * 1.6;
         gl_FragColor = vec4(col, 1.0);
       }`,
     depthTest: false, depthWrite: false,
@@ -96,17 +101,17 @@ export function createLogo(ctx, opts = {}) {
   const hatMat = new THREE.ShaderMaterial({
     uniforms: {
       tAlpha: { value: canvasTexture(tint(hat, '#ffffff')) }, tTime: { value: timeField(hat, fw, fh) },
-      p: { value: 0 }, solid: { value: 0 }, navy: { value: new THREE.Color(NAVY) }, heat: { value: 1 },
+      p: { value: 0 }, solid: { value: 0 }, navy: { value: new THREE.Color(NAVY) }, heat: { value: 1 }, lightCol: { value: v3(P.light) },
     },
     vertexShader: /* glsl */`varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
     fragmentShader: /* glsl */`
-      uniform sampler2D tAlpha, tTime; uniform float p, solid, heat; uniform vec3 navy; varying vec2 vUv;
+      uniform sampler2D tAlpha, tTime; uniform float p, solid, heat; uniform vec3 navy, lightCol; varying vec2 vUv;
       void main() {
         float a = texture2D(tAlpha, vUv).a;
         float tt = texture2D(tTime, vUv).r;
         float shown = smoothstep(p, p - 0.012, tt);
         float head = exp(-pow((tt - p) * 22.0, 2.0)) * step(p, 1.02);
-        vec3 light = vec3(1.0, 0.86, 0.62) * (1.5 + 5.0 * head) * heat;
+        vec3 light = lightCol * (1.5 + 5.0 * head) * heat;
         vec3 col = mix(light, navy, solid);
         gl_FragColor = vec4(col, a * shown);
       }`,
@@ -164,7 +169,7 @@ export function createLogo(ctx, opts = {}) {
     return {
       fade: smooth(prog(t, 0.0, 0.2)),
       flash: pulse(t, FLASH + 0.03, 0.09) * 0.9,
-      flashColor: [1.0, 0.95, 0.86],
+      flashColor: P.flash,
       aces: 1 - cream, tint: 0.5 * (1 - cream), contrast: 0.12 * (1 - cream), saturation: 1.06,
       bloom: lerp(0.9, 0.06, cream), streak: lerp(0.8, 0.0, cream), bloomThreshold: lerp(0.85, 1.2, cream),
       vignette: lerp(0.9, 0.22, cream), grain: lerp(0.045, 0.03, cream), ca: lerp(0.6, 0.15, cream),

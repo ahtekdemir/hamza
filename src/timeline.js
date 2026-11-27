@@ -15,6 +15,7 @@ import { createBfHook } from './scenes/bf-hook.js';
 import { createBfCode } from './scenes/bf-code.js';
 import { createBfCard } from './scenes/bf-card.js';
 import { buildOfferDesign, buildConfettiSprites } from './lib/bf-art.js';
+import { NEON } from './lib/bf-themes.js';
 
 export const FPS = 30;
 
@@ -65,6 +66,21 @@ const REELS = {
       })],
       [7.5, 11.0, createBfCode],
       [11.0, 15.0, createBfCard],
+    ],
+  },
+  // "30% off your first order" Black Friday reel in neon (pink / cyan / chrome)
+  bf2: {
+    duration: 15,
+    scenes: [
+      [0.0, 3.5, (ctx) => createBfHook(ctx, NEON)],
+      [3.5, 7.5, (ctx) => createTgPress(ctx, {
+        art: buildOfferDesign(NEON), shirt: NEON.shirt, shirtTint: NEON.shirtTint, bg: NEON.pressBg, halo: NEON.pressHalo,
+        lines: ['PRESS.', 'PEEL.', 'SAVE 30%.'], fall: { sprites: buildConfettiSprites(NEON), count: 34, size: [0.16, 0.36], fall: 0.9 },
+        dust: NEON.dust, outFlash: NEON.codeFlash, outFlashAmt: 0.5, filmBack: 0.3,
+        accent: NEON.accent, ring: NEON.accentHex, ringGlow: NEON.accentGlow, sparkle: NEON.sparkle, headline: NEON.headline, heat: NEON.heat,
+      })],
+      [7.5, 11.0, (ctx) => createBfCode(ctx, NEON)],
+      [11.0, 15.0, (ctx) => createBfCard(ctx, NEON)],
     ],
   },
 };

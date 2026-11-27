@@ -1,6 +1,6 @@
 # Cowboy DTF — motion reels
 
-Four 1080×1920 (9:16) motion reels for [cowboydtf.com](https://cowboydtf.com),
+Five 1080×1920 (9:16) motion reels for [cowboydtf.com](https://cowboydtf.com),
 rendered entirely from code: Three.js scenes, frame-by-frame capture in headless
 Chromium, motion blur by sub-frame accumulation, then bloom, lens streaks,
 filmic tone mapping, vignette and grain.
@@ -21,6 +21,9 @@ filmic tone mapping, vignette and grain.
 | `output/cowboydtf-black-friday.mp4` | Black Friday special — 30% off with code COWBOY30, 15 s, with music and sound |
 | `output/cowboydtf-black-friday-silent.mp4` | Same picture, no audio |
 | `output/cowboydtf-black-friday-sfx.wav` | Its sound track on its own |
+| `output/cowboydtf-black-friday-first-order.mp4` | Black Friday, neon colours — 30% off your first order with code COWBOY30, 15 s, with music and sound |
+| `output/cowboydtf-black-friday-first-order-silent.mp4` | Same picture, no audio |
+| `output/cowboydtf-black-friday-first-order-sfx.wav` | Its sound track on its own |
 
 ## "Press. Peel. Done." — the cut (20 s, 120 BPM grid)
 
@@ -84,6 +87,17 @@ with hits on the slam, the press, the typing and a register ring on the code.
 The discount (30% off, code COWBOY30, Black Friday Nov 27) is as given by the
 shop owner.
 
+### Neon version — "30% off your first order"
+
+The same four shots in a second colour theme: midnight violet with hot pink,
+electric cyan and chrome 3D lettering, a white tee, a pink coupon and a
+lilac-white end card. The wording says the code is for the first order
+("Your first order · code COWBOY30", "On your first order",
+"First order · Black Friday", "30% off your first order."). Colours and wording
+for both versions live in `src/lib/bf-themes.js` (`GOLD` and `NEON`); render it
+with `--reel bf2`. Its sound track is the same arrangement moved up three
+semitones: `python3 scripts/audio_bf.py output/cowboydtf-black-friday-first-order-sfx.wav --key 3`.
+
 All on-screen claims come from the live site. The artwork on the transfers is
 original sample art drawn in `src/lib/designs.js`; the logo files in
 `assets/brand/` are the site's own.
@@ -105,7 +119,8 @@ For the DTF vs UV DTF ad, add `--reel uv` to the render commands and use
 `npm run audio:uv`; its frames go to `.frames-uv/`. For the Thanksgiving reel
 use `--reel thanks` and `npm run audio:thanks`; its frames go to
 `.frames-thanks/`. For Black Friday use `--reel bf` and `npm run audio:bf`
-(frames in `.frames-bf/`). `node scripts/render.mjs --designs sheet.png --art sheet`
+(frames in `.frames-bf/`); for the neon first-order version `--reel bf2` and
+`npm run audio:bf2` (frames in `.frames-bf2/`). `node scripts/render.mjs --designs sheet.png --art sheet`
 exports the Thanksgiving design sheet as a flat image.
 
 To change wording, edit the `drawOverlay` function of the scene; timings are in

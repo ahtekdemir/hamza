@@ -26,6 +26,8 @@ export function createTgPress(ctx, opts = {}) {
   const designs = ctx.assets.thanks || (ctx.assets.thanks = buildThanksDesigns());
   const ART = opts.art || designs.badge, SHIRT = opts.shirt || SHIRT_COLOR, SHIRT_TINT = opts.shirtTint ?? 0xe2e2e2;
   const LINES = opts.lines || ['PRESS.', 'PEEL.', 'GIVE THANKS.'];
+  const ACCENT = opts.accent || ['#ffe08a', GOLD, '#ef9a1c'], RING = opts.ring || GOLD, RING_GLOW = opts.ringGlow || 'rgba(246,177,46,0.8)';
+  const SPARK = opts.sparkle || ['#ffe9b0', 'rgba(255,200,90,0.9)'], HEADLINE = opts.headline || CREAMY;
   const glowTex = smoothGlow(256, 1.5);
 
   const rig = new THREE.Group(); scene.add(rig);
@@ -73,7 +75,7 @@ export function createTgPress(ctx, opts = {}) {
   platen.position.y = -(PLATEN.h / 2 - PLATEN.cy) * plateS / PX;   // plate centre at the group origin
   const plateShadow = new THREE.Mesh(new THREE.PlaneGeometry(PW * 1.7, PW * 1.7), new THREE.MeshBasicMaterial({ map: glowTex, color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
   plateShadow.renderOrder = 6; rig.add(plateShadow);
-  const heat = new THREE.Mesh(new THREE.PlaneGeometry(PW * 2.1, PW * 2.1), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(3.2, 1.0, 0.16), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const heat = new THREE.Mesh(new THREE.PlaneGeometry(PW * 2.1, PW * 2.1), new THREE.MeshBasicMaterial({ map: glowTex, color: new THREE.Color(...(opts.heat || [3.2, 1.0, 0.16])), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
   heat.renderOrder = 7; rig.add(heat);
 
   // steam
@@ -97,7 +99,7 @@ export function createTgPress(ctx, opts = {}) {
   scene.add(leaves.group);
   const dust = makeDust({ count: 130, box: [9, 14, 12], seed: 14, size: 0.04, color: opts.dust ?? 0xffc98a, intensity: 0.8, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
   dust.position.z = 5; scene.add(dust);
-  const hat = tint(ctx.assets.images.hat, CREAMY, 0.25);
+  const hat = tint(ctx.assets.images.hat, HEADLINE, 0.25);
   const maxOff = FS / 2 * (0.76 + 0.65) / Math.hypot(0.76, 0.65);
 
   function update(t) {
@@ -163,14 +165,14 @@ export function createTgPress(ctx, opts = {}) {
 
   function drawOverlay(c, t) {
     const out = t - OUT;
-    brandMark(c, hat, 1 - smooth(prog(t, OUT, OUT + 0.2)));
+    brandMark(c, hat, 1 - smooth(prog(t, OUT, OUT + 0.2)), HEADLINE);
     const X = 96;
     const s = Math.min(...LINES.map((l) => fitSize(c, l, 640, 160))), cap = capHeight(c, s), gap = 30;
     const y1 = 292 + cap, y2 = y1 + gap + cap, y3 = y2 + gap + cap;
-    const o = { ...HEAD, size: s, align: 'left', fill: CREAMY, shadow: { color: 'rgba(0,0,0,0.5)', blur: 30, y: 8 } };
+    const o = { ...HEAD, size: s, align: 'left', fill: HEADLINE, shadow: { color: 'rgba(0,0,0,0.5)', blur: 30, y: 8 } };
     riseLine(c, LINES[0], X, y1, o, t - (CONTACT - 0.06), out, { stagger: 0.03, dur: 0.4 });
     riseLine(c, LINES[1], X, y2, o, t - (PEEL0 + 0.05), out - 0.03, { stagger: 0.03, dur: 0.4 });
-    riseLine(c, LINES[2], X, y3, { ...o, gradient: ['#ffe08a', GOLD, '#ef9a1c'], fill: undefined }, t - (DONE - 0.08), out - 0.06, { stagger: 0.024, dur: 0.45 });
+    riseLine(c, LINES[2], X, y3, { ...o, gradient: ACCENT, fill: undefined }, t - (DONE - 0.08), out - 0.06, { stagger: 0.024, dur: 0.45 });
 
     // hot-peel timer ring
     const p = t - (CONTACT + 0.05);
@@ -183,13 +185,13 @@ export function createTgPress(ctx, opts = {}) {
       c.lineWidth = 12; c.strokeStyle = 'rgba(255,243,220,0.2)';
       c.beginPath(); c.arc(0, 0, R, 0, Math.PI * 2); c.stroke();
       const sweep = ease.inOutSine(prog(t, CONTACT, LIFT));
-      c.strokeStyle = GOLD; c.lineCap = 'round'; c.shadowColor = 'rgba(246,177,46,0.8)'; c.shadowBlur = 18;
+      c.strokeStyle = RING; c.lineCap = 'round'; c.shadowColor = RING_GLOW; c.shadowBlur = 18;
       c.beginPath(); c.arc(0, 0, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(0.002, sweep)); c.stroke();
       c.restore();
       const a = sat(p * 5) * (1 - ex);
-      text(c, 'HOT PEEL', cx, cy - 42, { family: FONT.label, weight: 800, size: 19, tracking: 5, fill: GOLD, alpha: a, shadow: false });
-      text(c, '6–8', cx, cy + 34, { ...HEAD, size: 82, fill: CREAMY, alpha: a, shadow: false });
-      text(c, 'SECONDS', cx, cy + 66, { family: FONT.label, weight: 800, size: 19, tracking: 5, fill: CREAMY, alpha: a, shadow: false });
+      text(c, 'HOT PEEL', cx, cy - 42, { family: FONT.label, weight: 800, size: 19, tracking: 5, fill: RING, alpha: a, shadow: false });
+      text(c, '6–8', cx, cy + 34, { ...HEAD, size: 82, fill: HEADLINE, alpha: a, shadow: false });
+      text(c, 'SECONDS', cx, cy + 66, { family: FONT.label, weight: 800, size: 19, tracking: 5, fill: HEADLINE, alpha: a, shadow: false });
     }
 
     // sparkles around the finished print
@@ -197,7 +199,7 @@ export function createTgPress(ctx, opts = {}) {
     if (sp > 0 && sp < 1.2) {
       const pts = [[-330, -250, 30, 0], [318, -292, 38, 0.08], [352, 120, 24, 0.2], [-352, 190, 30, 0.14], [-250, -338, 18, 0.26], [262, 300, 20, 0.3], [0, -372, 22, 0.18], [-300, 330, 16, 0.36]];
       c.save();
-      c.fillStyle = '#ffe9b0'; c.shadowColor = 'rgba(255,200,90,0.9)'; c.shadowBlur = 22;
+      c.fillStyle = SPARK[0]; c.shadowColor = SPARK[1]; c.shadowBlur = 22;
       for (const [dx, dy, r, d] of pts) {
         const k = (sp - d) / 0.55;
         if (k <= 0 || k >= 1) continue;

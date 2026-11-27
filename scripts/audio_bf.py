@@ -13,6 +13,15 @@ import numpy as np
 import sfx
 from sfx import place, tt, band_noise, env, boom, blip, whoosh, bell, pad, SR
 
+# python3 scripts/audio_bf.py [output.wav] [--key N]   (N = semitones to transpose the music)
+ARGS = sys.argv[1:]
+KEY = 0.0
+if '--key' in ARGS:
+    i = ARGS.index('--key')
+    KEY = float(ARGS[i + 1])
+    del ARGS[i:i + 2]
+OUT = ARGS[0] if ARGS else 'output/cowboydtf-black-friday-sfx.wav'
+
 sfx.start(15.0)
 rng = np.random.default_rng(5)
 BEAT = 0.5
@@ -20,7 +29,7 @@ BEAT = 0.5
 
 def hz(semi):
     """Frequency `semi` semitones above D2."""
-    return 73.416 * 2 ** (semi / 12)
+    return 73.416 * 2 ** ((semi + KEY) / 12)
 
 
 def kick(d=0.42):
@@ -144,4 +153,4 @@ place(pad([hz(0), hz(12), hz(15), hz(19), hz(26)], 2.5, 0.02, 1.8, 0.3), E + 1.5
 place(bell([hz(36) * 2, hz(43) * 2], 1.6, 2.5), E + 1.5, 0.05)
 place(coin_ring(0.9), E + 2.12, 0.07)                                                       # code box pops in
 
-sfx.finish(sys.argv[1] if len(sys.argv) > 1 else 'output/cowboydtf-black-friday-sfx.wav')
+sfx.finish(OUT)

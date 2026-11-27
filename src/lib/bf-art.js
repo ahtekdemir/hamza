@@ -6,6 +6,7 @@ import { Font } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { star, roundRect } from './overlay.js';
 import { mulberry32 } from './util.js';
+import { GOLD } from './bf-themes.js';
 
 export const BF = {
   gold: '#F6B12E', goldLight: '#FFE08A', goldDeep: '#B9761A', red: '#D7262E', wine: '#7A0F1A',
@@ -39,33 +40,40 @@ function blockText(c, str, x, y, width, maxSize, depth, faceStops, shadeA, shade
 }
 
 /** The transfer on the shirt: "BLACK FRIDAY" ribbon, a huge "30%" and "OFF". */
-export function buildOfferDesign() {
+export function buildOfferDesign(T = GOLD) {
+  const O = T.offer, up = O.sub ? 46 : 0;
   return make(1000, 1000, (c, S) => {
     const cx = S / 2;
     // ribbon
-    const by = 120, bh = 118, bw = 800;
-    c.fillStyle = BF.wine;
+    const by = 120 - up, bh = 118, bw = 800;
+    c.fillStyle = O.ribbonDark;
     for (const sx of [-1, 1]) {
       c.beginPath();
       c.moveTo(cx + sx * bw * 0.44, by + 22); c.lineTo(cx + sx * bw * 0.56, by + 22); c.lineTo(cx + sx * bw * 0.52, by + bh / 2 + 22);
       c.lineTo(cx + sx * bw * 0.56, by + bh + 22); c.lineTo(cx + sx * bw * 0.44, by + bh + 22); c.closePath(); c.fill();
     }
-    c.fillStyle = BF.red; roundRect(c, cx - bw / 2, by, bw, bh, 8); c.fill();
+    c.fillStyle = O.ribbon; roundRect(c, cx - bw / 2, by, bw, bh, 8); c.fill();
     c.font = '400 86px "Anton"'; c.letterSpacing = '14px'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillStyle = BF.cream; c.fillText('BLACK FRIDAY', cx + 7, by + bh / 2 + 4);
+    c.fillStyle = O.ribbonText; c.fillText('BLACK FRIDAY', cx + 7, by + bh / 2 + 4);
     c.letterSpacing = '0px';
     // 30% and OFF
-    blockText(c, '30%', cx, 640, 820, 560, 22, ['#FFF1B0', BF.gold, '#E8901A'], BF.goldDeep, '#6B3A0E');
-    blockText(c, 'OFF', cx, 905, 600, 290, 16, [BF.cream, '#F3DDB4'], '#9C8A6A', '#4B4030', 30);
+    blockText(c, '30%', cx, 640 - up, 820, 560, 22, O.big, O.bigShade[0], O.bigShade[1]);
+    blockText(c, 'OFF', cx, 905 - up * 1.6, 600, O.sub ? 250 : 290, 16, O.off, O.offShade[0], O.offShade[1], 30);
+    if (O.sub) {
+      c.font = '400 64px "Anton"'; c.letterSpacing = '10px'; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+      c.fillStyle = O.ribbonDark; c.fillText(O.sub, cx + 5 + 3, 975 + 3);
+      c.fillStyle = O.off[1]; c.fillText(O.sub, cx + 5, 975);
+      c.letterSpacing = '0px';
+    }
     // stars
-    c.fillStyle = BF.gold;
-    for (const [x, y, r] of [[80, 470, 26], [920, 470, 26], [120, 820, 18], [880, 820, 18]]) { star(c, x, y, r); c.fill(); }
+    c.fillStyle = O.star;
+    for (const [x, y, r] of [[80, 470 - up, 26], [920, 470 - up, 26], [120, 820 - up, 18], [880, 820 - up, 18]]) { star(c, x, y, r); c.fill(); }
   });
 }
 
 /** Confetti: gold, cream and red rectangles, curls and stars (256 px sprites). */
-export function buildConfettiSprites() {
-  const cols = [['#FFE08A', '#F6B12E', '#B9761A'], ['#FFF8E8', '#F1E2C2', '#B8A27A'], ['#FF5A5F', '#D7262E', '#7A0F1A'], ['#FFD36B', '#E8A21E', '#8C5A10']];
+export function buildConfettiSprites(T = GOLD) {
+  const cols = T.confetti;
   const out = [];
   cols.forEach(([l, m, d], i) => {
     const grad = (c) => { const g = c.createLinearGradient(60, 60, 196, 196); g.addColorStop(0, l); g.addColorStop(0.5, m); g.addColorStop(1, d); return g; };
@@ -93,9 +101,9 @@ export function goldText(typeface, str, width, mats, { depth = 0.26, bevel = 0.0
   return { mesh, w: width, h: (bb.max.y - bb.min.y) * s };
 }
 
-export function goldMaterials() {
-  const face = new THREE.MeshPhysicalMaterial({ color: 0xffc95a, metalness: 1, roughness: 0.2, clearcoat: 0.7, clearcoatRoughness: 0.12, envMapIntensity: 1.5 });
-  const side = new THREE.MeshPhysicalMaterial({ color: 0xd08a22, metalness: 1, roughness: 0.32, clearcoat: 0.4, envMapIntensity: 1.2 });
+export function goldMaterials(T = GOLD) {
+  const face = new THREE.MeshPhysicalMaterial({ ...T.metalFace });
+  const side = new THREE.MeshPhysicalMaterial({ ...T.metalSide });
   return [face, side];
 }
 

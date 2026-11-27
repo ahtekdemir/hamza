@@ -9,6 +9,7 @@ import { tint } from '../lib/assets.js';
 import { ease, prog, lerp, sat, smooth, pulse, mulberry32 } from '../lib/util.js';
 import { riseLine, text, star, roundRect, FONT } from '../lib/overlay.js';
 import { wx, wy, brandMark } from './tg-sheet.js';
+import { GOLD } from '../lib/bf-themes.js';
 
 export const TYPE0 = 0.72, TYPE_STEP = 0.1, LOCK = TYPE0 + CODE.length * TYPE_STEP + 0.08;
 const OUT = 3.22;
@@ -30,58 +31,64 @@ function ticketPath(c, x, y, w, h) {
 }
 
 /** The ticket without the code (static parts), drawn once. */
-function buildTicket(hat) {
+function buildTicket(hat, K) {
   const pad = 60;
   const cv = document.createElement('canvas'); cv.width = TW + pad * 2; cv.height = TH + pad * 2;
   const c = cv.getContext('2d');
   c.translate(pad, pad);
   // shadow
   c.save(); c.shadowColor = 'rgba(0,0,0,0.6)'; c.shadowBlur = 40; c.shadowOffsetY = 18;
-  c.fillStyle = '#f6ecd8'; ticketPath(c, 0, 0, TW, TH); c.fill(); c.restore();
+  c.fillStyle = K.paper[1]; ticketPath(c, 0, 0, TW, TH); c.fill(); c.restore();
   // paper
   c.save(); ticketPath(c, 0, 0, TW, TH); c.clip();
-  let g = c.createLinearGradient(0, 0, TW, TH); g.addColorStop(0, '#FFF8EA'); g.addColorStop(1, '#F1E2C4');
+  let g = c.createLinearGradient(0, 0, TW, TH); g.addColorStop(0, K.paper[0]); g.addColorStop(1, K.paper[1]);
   c.fillStyle = g; c.fillRect(0, 0, TW, TH);
   const rnd = mulberry32(9);
-  for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(120,90,50,${rnd() * 0.05})`; c.fillRect(rnd() * TW, rnd() * TH, 2, 2); }
+  for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(${K.noise},${rnd() * 0.05})`; c.fillRect(rnd() * TW, rnd() * TH, 2, 2); }
   // stub
-  g = c.createLinearGradient(0, 0, 0, TH); g.addColorStop(0, '#E5333A'); g.addColorStop(1, '#B21C25');
+  g = c.createLinearGradient(0, 0, 0, TH); g.addColorStop(0, K.stub[0]); g.addColorStop(1, K.stub[1]);
   c.fillStyle = g; c.fillRect(0, 0, STUB, TH);
-  c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = BF.cream;
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillStyle = K.stubText;
   c.font = '400 104px "Anton"'; c.fillText('30%', STUB / 2, TH / 2 + 16);
   c.font = '400 70px "Anton"'; c.letterSpacing = '8px'; c.fillText('OFF', STUB / 2 + 4, TH / 2 + 96); c.letterSpacing = '0px';
-  c.fillStyle = BF.gold; star(c, STUB / 2, TH / 2 - 112, 20); c.fill();
+  c.fillStyle = K.star; star(c, STUB / 2, TH / 2 - 112, 20); c.fill();
   c.restore();
   // perforation
-  c.strokeStyle = 'rgba(80,50,30,0.45)'; c.lineWidth = 4; c.setLineDash([12, 12]);
+  c.strokeStyle = K.perf; c.lineWidth = 4; c.setLineDash([12, 12]);
   c.beginPath(); c.moveTo(STUB, 34); c.lineTo(STUB, TH - 34); c.stroke(); c.setLineDash([]);
   // inner border
-  c.strokeStyle = 'rgba(118,44,43,0.35)'; c.lineWidth = 2;
+  c.strokeStyle = K.border; c.lineWidth = 2;
   roundRect(c, STUB + 22, 20, TW - STUB - 42, TH - 40, 14); c.stroke();
   // header
   const mx = STUB + (TW - STUB) / 2;
   c.textAlign = 'center'; c.textBaseline = 'alphabetic';
   c.globalAlpha = 0.9; const hw = 60, hh = hw * hat.height / hat.width; c.drawImage(hat, mx - hw / 2, 44, hw, hh); c.globalAlpha = 1;
-  c.font = `800 26px "${FONT.label}"`; c.letterSpacing = '7px'; c.fillStyle = BF.ox;
-  c.fillText('BLACK FRIDAY SPECIAL', mx + 3, 118);
-  c.font = `700 21px "${FONT.label}"`; c.letterSpacing = '6px'; c.fillStyle = 'rgba(32,56,105,0.85)';
-  c.fillText('ENTER AT CHECKOUT', mx + 3, TH - 50);
+  // header: 26 px, shrunk only if it would run into the inner border
+  let hs = 26;
+  c.font = `800 ${hs}px "${FONT.label}"`; c.letterSpacing = '7px';
+  const hw0 = c.measureText(K.header).width - 7, maxW = TW - STUB - 120;
+  if (hw0 > maxW) { hs = 26 * maxW / hw0; c.font = `800 ${hs}px "${FONT.label}"`; c.letterSpacing = `${7 * hs / 26}px`; }
+  c.fillStyle = K.headerColor;
+  c.fillText(K.header, mx + 3 * hs / 26, 118);
+  c.font = `700 21px "${FONT.label}"`; c.letterSpacing = '6px'; c.fillStyle = K.footerColor;
+  c.fillText(K.footer, mx + 3, TH - 50);
   c.letterSpacing = '0px';
   return { canvas: cv, pad };
 }
 
-export function createBfCode(ctx) {
+export function createBfCode(ctx, T = GOLD) {
+  const K = T.ticket;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, ctx.aspect, 0.1, 200);
-  const backdrop = makeBackdrop({ inner: 0x34100a, outer: 0x030203, center: [0.5, 0.52], radius: 0.95 });
+  const backdrop = makeBackdrop({ inner: T.codeBg, outer: 0x030203, center: [0.5, 0.52], radius: 0.95 });
   scene.add(backdrop);
-  const confetti = makeLeaves({ count: 40, seed: 19, area: [5.6, 9.6], zr: [-3, 8.5], size: [0.16, 0.36], fall: 0.9, sprites: buildConfettiSprites(), avoid: [wx(60), wx(1020), wy(1140), wy(270)] });
+  const confetti = makeLeaves({ count: 40, seed: 19, area: [5.6, 9.6], zr: [-3, 8.5], size: [0.16, 0.36], fall: 0.9, sprites: buildConfettiSprites(T), avoid: [wx(60), wx(1020), wy(1140), wy(270)] });
   scene.add(confetti.group);
-  const dust = makeDust({ count: 150, box: [9, 14, 12], seed: 41, size: 0.04, color: 0xffcf8a, intensity: 0.9, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
+  const dust = makeDust({ count: 150, box: [9, 14, 12], seed: 41, size: 0.04, color: T.dust, intensity: 0.9, focus: 17, blur: 0.02, fov: 30, pixelH: ctx.pixelH });
   dust.position.z = 5; scene.add(dust);
-  const hatNavy = tint(ctx.assets.images.hat, BF.navy, 0.2);
-  const hatCream = tint(ctx.assets.images.hat, CREAMY, 0.25);
-  const ticket = buildTicket(hatNavy);
+  const hatNavy = tint(ctx.assets.images.hat, K.hat, 0.2);
+  const hatCream = tint(ctx.assets.images.hat, T.headline, 0.25);
+  const ticket = buildTicket(hatNavy, K);
 
   function update(t) {
     backdrop.material.uniforms.time.value = t + 6;
@@ -93,9 +100,9 @@ export function createBfCode(ctx) {
 
   function drawOverlay(c, t) {
     const out = t - OUT;
-    brandMark(c, hatCream, smooth(prog(t, 0.0, 0.3)) * (1 - smooth(prog(t, OUT, OUT + 0.2))));
+    brandMark(c, hatCream, smooth(prog(t, 0.0, 0.3)) * (1 - smooth(prog(t, OUT, OUT + 0.2))), T.headline);
     const s = fitSize(c, 'USE CODE', 700, 180), cap = capHeight(c, s);
-    riseLine(c, 'USE CODE', 540, 300 + cap, { ...HEAD, size: s, fill: CREAMY, shadow: { color: 'rgba(0,0,0,0.6)', blur: 30, y: 8 } }, t - 0.05, out, { stagger: 0.035, dur: 0.45 });
+    riseLine(c, 'USE CODE', 540, 300 + cap, { ...HEAD, size: s, fill: T.headline, shadow: { color: 'rgba(0,0,0,0.6)', blur: 30, y: 8 } }, t - 0.05, out, { stagger: 0.035, dur: 0.45 });
 
     // ticket: swings in, floats, leaves upward at the end
     const a = prog(t, 0.08, 0.62), e = ease.outBack(a, 1.3);
@@ -112,9 +119,9 @@ export function createBfCode(ctx) {
     const mx = -TW / 2 + STUB + (TW - STUB) / 2, bw = 580, bh = 160, bx = mx - bw / 2, by = -bh / 2 + 6;
     const lock = t - LOCK;
     const lk = lock > 0 ? Math.exp(-lock * 5) : 0;
-    c.fillStyle = lock > 0 ? `rgba(246,177,46,${0.16 + lk * 0.4})` : 'rgba(32,56,105,0.06)';
+    c.fillStyle = lock > 0 ? `rgba(${K.lockRGB},${0.16 + lk * 0.4})` : K.idleFill;
     roundRect(c, bx, by, bw, bh, 16); c.fill();
-    c.lineWidth = 5; c.strokeStyle = lock > 0 ? BF.gold : BF.navy;
+    c.lineWidth = 5; c.strokeStyle = lock > 0 ? K.lock : K.idleStroke;
     if (lock <= 0) c.setLineDash([18, 12]);
     roundRect(c, bx, by, bw, bh, 16); c.stroke(); c.setLineDash([]);
     // typed code
@@ -127,7 +134,7 @@ export function createBfCode(ctx) {
       // the newest letter pops
       const k = sat((t - TYPE0 - (n - 1) * TYPE_STEP) / 0.08);
       const before = CODE.slice(0, n - 1);
-      c.fillStyle = BF.navy; c.fillText(before, x0, base);
+      c.fillStyle = K.code; c.fillText(before, x0, base);
       const wb = n > 1 ? c.measureText(before).width : 0;
       c.save();
       const lw = c.measureText(CODE[n - 1]).width;
@@ -136,16 +143,16 @@ export function createBfCode(ctx) {
       c.restore();
       // cursor
       const cxr = x0 + c.measureText(typed).width + 2;
-      if (t < LOCK) { c.fillStyle = BF.red; c.fillRect(cxr, base - 90, 7, 100); }
-    } else if (Math.floor(t * 5) % 2 === 0) { c.fillStyle = BF.red; c.fillRect(x0, base - 90, 7, 100); }
+      if (t < LOCK) { c.fillStyle = K.cursor; c.fillRect(cxr, base - 90, 7, 100); }
+    } else if (Math.floor(t * 5) % 2 === 0) { c.fillStyle = K.cursor; c.fillRect(x0, base - 90, 7, 100); }
     c.letterSpacing = '0px';
     // check badge
     if (lock > 0) {
       const pe = ease.outBack(sat(lock / 0.35), 2.2);
       c.save();
       c.translate(bx + bw - 6, by + 6); c.scale(pe, pe);
-      c.fillStyle = BF.gold; c.beginPath(); c.arc(0, 0, 34, 0, Math.PI * 2); c.fill();
-      c.strokeStyle = BF.ink; c.lineWidth = 8; c.lineCap = 'round'; c.lineJoin = 'round';
+      c.fillStyle = K.check; c.beginPath(); c.arc(0, 0, 34, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = K.checkMark; c.lineWidth = 8; c.lineCap = 'round'; c.lineJoin = 'round';
       c.beginPath(); c.moveTo(-14, 1); c.lineTo(-4, 12); c.lineTo(15, -11); c.stroke();
       c.restore();
     }
@@ -155,7 +162,7 @@ export function createBfCode(ctx) {
       c.save(); ticketPath(c, -TW / 2, -TH / 2, TW, TH); c.clip();
       const x = lerp(-TW, TW, ease.inOutSine(sh));
       const g = c.createLinearGradient(x - 160, 0, x + 160, 0);
-      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,250,235,0.3)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(${K.sheen},0.3)`); g.addColorStop(1, 'rgba(255,255,255,0)');
       c.fillStyle = g; c.rotate(0.3); c.fillRect(-TW * 1.5, -TH * 2, TW * 3, TH * 4);
       c.restore();
     }
@@ -163,7 +170,7 @@ export function createBfCode(ctx) {
     // sparkles
     const sp = t - LOCK;
     if (sp > 0 && sp < 1.0) {
-      c.save(); c.fillStyle = '#ffe9b0'; c.shadowColor = 'rgba(255,200,90,0.9)'; c.shadowBlur = 20;
+      c.save(); c.fillStyle = T.sparkle[0]; c.shadowColor = T.sparkle[1]; c.shadowBlur = 20;
       for (const [dx, dy, r, d] of [[-430, -250, 30, 0], [420, -270, 36, 0.06], [440, 200, 26, 0.14], [-420, 230, 24, 0.1], [0, -300, 20, 0.2]]) {
         const k = (sp - d) / 0.55; if (k <= 0 || k >= 1) continue;
         const s2 = Math.sin(Math.PI * k); c.globalAlpha = s2;
@@ -176,7 +183,7 @@ export function createBfCode(ctx) {
   function post(t) {
     return {
       flash: Math.exp(-t * 9) * 0.6 + pulse(t, LOCK + 0.02, 0.05) * 0.05 + ease.inCubic(prog(t, 3.3, 3.5)) * 0.5,
-      flashColor: [1.0, 0.85, 0.6],
+      flashColor: T.codeFlash,
       zoomBlur: Math.exp(-t * 9) * 0.15 + ease.inCubic(prog(t, OUT, 3.5)) * 0.2,
       bloom: 0.3, bloomThreshold: 1.05, streak: 0.15, vignette: 0.95, saturation: 1.08, tint: 0.15, ca: 0.35,
     };
